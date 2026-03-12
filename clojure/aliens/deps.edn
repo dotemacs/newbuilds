@@ -1,0 +1,5 @@
+{:paths ["src"]
+ :aliases
+ {:lint {:extra-deps
+         {clj-kondo/clj-kondo {:mvn/version "2026.01.19"}}
+         :main-opts ["-m" "clj-kondo.main" "--lint" "src"]}}}
