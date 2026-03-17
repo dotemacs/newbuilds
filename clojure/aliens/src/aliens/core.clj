@@ -137,98 +137,223 @@
   (* num (/ percent 100.0)))
 
 
-(defn get-partial-invader-sizes
-  [{:keys [invader radar percent] :as all}]
-  (let [full-invader-height (get-height invader)
-        partial-invader-height (->round (percent-of {:num full-invader-height :percent percent}))
-        full-invader-width (get-width invader)
-        partial-invader-width (->round (percent-of {:num full-invader-width :percent percent}))
-        full-radar-height (get-height radar)
-        full-radar-width (get-width radar)
-
-        partial-invader-sizes {:top {:height partial-invader-height
-                                     :width full-invader-width}
-                               :bottom {:height partial-invader-height
-                                        :width full-invader-width}
-                               :left {:height full-invader-height
-                                      :width partial-invader-width}
-                               :right {:height full-invader-height
-                                       :width partial-invader-width}}]
-    (merge all {:partial-invader-sizes partial-invader-sizes})))
-
-(defn get-radar-edges
-  [{:keys [radar partial-invader-sizes] :as all}]
-  (let [radar-height (get-height radar)
-        radar-width (get-width radar)
-        radar-edges {:top (window-at {:grid radar
-                                      :row 0
-                                      :col 0
-                                      :height (get-in partial-invader-sizes [:top :height])
-                                      :width radar-width})
-                     :bottom (window-at {:grid radar
-                                         :row (- radar-height
-                                                 (get-in partial-invader-sizes [:bottom :height]))
-                                         :col 0
-                                         :height (get-in partial-invader-sizes [:bottom :height])
-                                         :width radar-width})
-                     :left (window-at {:grid radar
-                                       :row 0
-                                       :col 0
-                                       :height radar-height
-                                       :width (get-in partial-invader-sizes [:left :width])})
-                     :right (window-at {:grid radar
-                                        :row 0
-                                        :col (- radar-width
-                                                (get-in partial-invader-sizes [:right :width]))
-                                        :height radar-height
-                                        :width (get-in partial-invader-sizes [:right :width])})}]
-    (merge all {:radar-edges radar-edges})))
-
-(defn get-partial-invaders
-  [{:keys [invader partial-invader-sizes] :as all}]
+(defn get-all-invader-rotations
+  [{:keys [radar invader percent] :as all}]
   (let [invader-height (get-height invader)
         invader-width (get-width invader)
-        partial-invaders {:top (window-at {:grid invader
-                                           :row 0
-                                           :col 0
-                                           :height (get-in partial-invader-sizes [:top :height])
-                                           :width invader-width})
-                          :bottom (window-at {:grid invader
-                                              :row (- invader-height (get-in partial-invader-sizes [:bottom :height]))
-                                              :col 0
-                                              :height (get-in partial-invader-sizes [:bottom :height])
-                                              :width invader-width})
-                          :left (window-at {:grid invader
-                                            :row 0
-                                            :col 0
-                                            :height invader-height
-                                            :width (get-in partial-invader-sizes [:left :width])})
-                          :right (window-at {:grid invader
-                                             :row 0
-                                             :col (- invader-width (get-in partial-invader-sizes [:right :width]))
-                                             :height invader-height
-                                             :width (get-in partial-invader-sizes [:right :width])})}]
-    (merge all {:partial-invaders partial-invaders})))
+        base {:rotation 0
+              :invader invader
+              :height invader-height
+              :width invader-width}]
+    (assoc all
+           :invader-rotations
+           (for [rotation [0 90 180 270]]
+             (case rotation
+               0 base
+               90 (let [invader (rotate-90 invader)]
+                    (merge base
+                           {:invader invader
+                            :rotation rotation
+                            :height (get-height invader)
+                            :width (get-width invader)}))
+               180 (let [invader (rotate-180 invader)]
+                     (merge base
+                            {:invader invader
+                             :rotation rotation
+                             :height (get-height invader)
+                             :width (get-width invader)}))
+               270 (let [invader (rotate-270 invader)]
+                     (merge base
+                            {:invader invader
+                             :rotation rotation
+                             :height (get-height invader)
+                             :width (get-width invader)})))))))
 
-(defn find-edge-matches
-  [{:keys [partial-invaders radar-edges]}]
-  (let [options {:top [:top :bottom]
-                 :bottom [:top :bottom]
-                 :left [:left :right]
-                 :right [:left :right]}]
-    (for [[radar-side invader-sides] options
-          invader-side invader-sides
-          :let [radar-edge (get radar-edges radar-side)
-                partial-invader (get partial-invaders invader-side)]
-          match (scan-radar partial-invader radar-edge)]
-      (assoc match
-             :kind :partial
-             :radar-side radar-side
-             :invader-side invader-side))))
+;; - take each rotated invader
+;; - compute minimum visible size from percent
+;; - convert that into allowed overhang
+;; - generate legal edge placements
+;; - for each placement, return the radar overlap rectangle and the matching invader overlap rectangle
 
-;; usage
-#_(->> (get-partial-invader-sizes {:radar data/radar-data :invader data/invader-a :percent 50})
-       get-radar-edges
-       get-partial-invaders
-       find-edge-matches
+(defn get-partial-visible-areas
+  [{:keys [radar invader percent invader-rotations] :as all}]
+  (assoc all
+         :invader-rotations
+         (for [invader-rotation invader-rotations
+               :let [invader-height (:height invader-rotation)
+                     invader-width (:width invader-rotation)
+                     invader-attrib-%->num #(-> (percent-of {:num %
+                                                             :percent percent})
+                                                Math/floor ;; intentional
+                                                int)
+                     visible-height (invader-attrib-%->num invader-height)
+                     visible-width (invader-attrib-%->num invader-width)
+                     overhang-height (- invader-height visible-height)
+                     overhang-width (- invader-width visible-width)]]
+           (assoc invader-rotation
+                  :partial-visible-areas
+                  {:overhang-height overhang-height
+                   :overhang-width overhang-width
+                   :visible-height visible-height
+                   :visible-width visible-width}))))
+
+(defn get-partial-placements
+  [{:keys [radar invader-rotations] :as all}]
+  (let [radar-height (get-height radar)
+        radar-width (get-width radar)
+        base {:side :top
+              :row 0
+              :col 0}
+        vertical-placements
+        (fn [{:keys [height width partial-visible-areas]}]
+          (let [{:keys [visible-height overhang-height]} partial-visible-areas]
+            (concat
+             ;; top edge
+             (for [row (range (- overhang-height) 0)
+                   col (range 0 (inc (- radar-width width)))]
+               (assoc base
+                      :row row
+                      :col col
+                      :radar-row 0
+                      :radar-col col
+                      :invader-row (- row)
+                      :invader-col 0
+                      :height (+ height row)
+                      :width width))
+
+             ;; bottom edge
+             (for [row (range (- radar-height visible-height) radar-height)
+                   col (range 0 (inc (- radar-width width)))
+                   :let [visible-rows (- radar-height row)]
+                   :when (>= visible-rows visible-height)]
+               (assoc base
+                      :side :bottom
+                      :row row
+                      :col col
+                      :radar-row row
+                      :radar-col col
+                      :invader-row 0
+                      :invader-col 0
+                      :height visible-rows
+                      :width width)))))
+
+        horizontal-placements
+        (fn [{:keys [height width partial-visible-areas]}]
+          (let [{:keys [visible-width overhang-width]} partial-visible-areas]
+            (concat
+             ;; left edge
+             (for [row (range 0 (inc (- radar-height height)))
+                   col (range (- overhang-width) 0)]
+               (assoc base
+                      :side :left
+                      :row row
+                      :col col
+                      :radar-row row
+                      :radar-col 0
+                      :invader-row 0
+                      :invader-col (- col)
+                      :height height
+                      :width (+ width col)))
+
+             ;; right edge
+             (for [row (range 0 (inc (- radar-height height)))
+                   col (range (- radar-width visible-width) radar-width)
+                   :let [visible-cols (- radar-width col)]
+                   :when (>= visible-cols visible-width)]
+               (assoc base
+                      :side :right
+                      :row row
+                      :col col
+                      :radar-row row
+                      :radar-col col
+                      :invader-row 0
+                      :invader-col 0
+                      :height height
+                      :width visible-cols)))))]
+    (assoc all
+           :invader-rotations
+           (for [invader-rotation invader-rotations]
+             (assoc invader-rotation
+                    :placements
+                    (vec (concat (vertical-placements invader-rotation)
+                                 (horizontal-placements invader-rotation))))))))
+
+(defn compare-partial-visible-invaders
+  [{:keys [radar invader-rotations] :as all}]
+  (let [score-placement
+        (fn [{:keys [invader rotation placements] :as invader-rotation}]
+          (assoc invader-rotation
+                 :placements
+                 (vec
+                  (for [{:keys [radar-row radar-col invader-row invader-col height width]
+                         :as placement}
+                        placements
+                        :let [radar-window (window-at {:grid radar
+                                                       :row radar-row
+                                                       :col radar-col
+                                                       :height height
+                                                       :width width})
+                              invader-window (window-at {:grid invader
+                                                         :row invader-row
+                                                         :col invader-col
+                                                         :height height
+                                                         :width width})
+                              {:keys [matched-cells possible-cells coverage]}
+                              (score-scan invader-window radar-window)]]
+                    (merge placement
+                           {:kind :partial
+                            :rotation rotation
+                            :matched-cells matched-cells
+                            :possible-cells possible-cells
+                            :coverage coverage
+                            :radar-window radar-window
+                            :invader-window invader-window})))))]
+    (assoc all
+           :invader-rotations
+           (map score-placement invader-rotations)
+           :partial-matches
+           (vec
+            (mapcat :placements
+                    (map score-placement invader-rotations))))))
+
+;; desired flow
+;; to find matches which match 75% of the scans
+;;
+#_(->> {:radar data/radar-data :invader data/invader-a :percent 50}
+       get-all-invader-rotations
+       get-partial-visible-areas
+       get-partial-placements
+       compare-partial-visible-invaders
+       :partial-matches
        (filter #(> (:coverage %) 75)))
+
+
+(defn full-scan
+  "Scan the radar data for invaders, returning full matches and partial matches.
+  `invader` is the invader data.
+  `radar` is the radar data.
+  `full-match-percent` represents the percentage of matches that
+  should have, in order to be shown.
+  `partial-match-percent`, the same as above, but for matches that are
+  partially shown in the radar data.
+  `partial-match-visible` is the percentage of the invader that should
+  be present in the radar, for it to be even considered for
+  comparison. For example if the value is set to 60, anything under it
+  won't be considered."
+  [{:keys [invader radar full-match-percent partial-match-percent partial-match-visible]}]
+  {:full-matches
+   (filter #(> (:coverage %) full-match-percent) (scan-radar invader radar))
+   :partial-matches
+   (->> {:radar radar :invader invader :percent partial-match-percent}
+        get-all-invader-rotations
+        get-partial-visible-areas
+        get-partial-placements
+        compare-partial-visible-invaders
+        :partial-matches
+        (filter #(> (:coverage %) partial-match-visible)))})
+
+#_(full-scan {:radar data/radar-data
+              :invader data/invader-a
+              :full-match-percent 75
+              :partial-match-percent 75
+              :partial-match-visible 50})

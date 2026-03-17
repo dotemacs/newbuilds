@@ -10,6 +10,16 @@
    "o-o-----o-o"
    "---oo-oo---"])
 
+(def invader-b
+  ["---oo---"
+   "--oooo--"
+   "-oooooo-"
+   "oo-oo-oo"
+   "oooooooo"
+   "--o--o--"
+   "-o-oo-o-"
+   "o-o--o-o"])
+
 (def radar-data
   ["----o--oo----o--ooo--ooo--o------o---oo-o----oo---o--o---------o----o------o-------------o--o--o--o-"
    "--o-o-----oooooooo-oooooo---o---o----o------ooo-o---o--o----o------o--o---ooo-----o--oo-o------o----"
