@@ -147,27 +147,28 @@
               :width invader-width}]
     (assoc all
            :invader-rotations
-           (for [rotation [0 90 180 270]]
-             (case rotation
-               0 base
-               90 (let [invader (rotate-90 invader)]
-                    (merge base
-                           {:invader invader
-                            :rotation rotation
-                            :height (get-height invader)
-                            :width (get-width invader)}))
-               180 (let [invader (rotate-180 invader)]
+           (vec
+            (for [rotation [0 90 180 270]]
+              (case rotation
+                0 base
+                90 (let [invader (rotate-90 invader)]
                      (merge base
                             {:invader invader
                              :rotation rotation
                              :height (get-height invader)
                              :width (get-width invader)}))
-               270 (let [invader (rotate-270 invader)]
-                     (merge base
-                            {:invader invader
-                             :rotation rotation
-                             :height (get-height invader)
-                             :width (get-width invader)})))))))
+                180 (let [invader (rotate-180 invader)]
+                      (merge base
+                             {:invader invader
+                              :rotation rotation
+                              :height (get-height invader)
+                              :width (get-width invader)}))
+                270 (let [invader (rotate-270 invader)]
+                      (merge base
+                             {:invader invader
+                              :rotation rotation
+                              :height (get-height invader)
+                              :width (get-width invader)}))))))))
 
 ;; - take each rotated invader
 ;; - compute minimum visible size from percent
@@ -179,23 +180,24 @@
   [{:keys [radar invader percent invader-rotations] :as all}]
   (assoc all
          :invader-rotations
-         (for [invader-rotation invader-rotations
-               :let [invader-height (:height invader-rotation)
-                     invader-width (:width invader-rotation)
-                     invader-attrib-%->num #(-> (percent-of {:num %
-                                                             :percent percent})
-                                                Math/floor ;; intentional
-                                                int)
-                     visible-height (invader-attrib-%->num invader-height)
-                     visible-width (invader-attrib-%->num invader-width)
-                     overhang-height (- invader-height visible-height)
-                     overhang-width (- invader-width visible-width)]]
-           (assoc invader-rotation
-                  :partial-visible-areas
-                  {:overhang-height overhang-height
-                   :overhang-width overhang-width
-                   :visible-height visible-height
-                   :visible-width visible-width}))))
+         (vec
+          (for [invader-rotation invader-rotations
+                :let [invader-height (:height invader-rotation)
+                      invader-width (:width invader-rotation)
+                      invader-attrib-%->num #(-> (percent-of {:num %
+                                                              :percent percent})
+                                                 Math/floor ;; intentional
+                                                 int)
+                      visible-height (invader-attrib-%->num invader-height)
+                      visible-width (invader-attrib-%->num invader-width)
+                      overhang-height (- invader-height visible-height)
+                      overhang-width (- invader-width visible-width)]]
+            (assoc invader-rotation
+                   :partial-visible-areas
+                   {:overhang-height overhang-height
+                    :overhang-width overhang-width
+                    :visible-height visible-height
+                    :visible-width visible-width})))))
 
 (defn get-partial-placements
   [{:keys [radar invader-rotations] :as all}]

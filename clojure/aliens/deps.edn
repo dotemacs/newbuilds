@@ -2,4 +2,9 @@
  :aliases
  {:lint {:extra-deps
          {clj-kondo/clj-kondo {:mvn/version "2026.01.19"}}
-         :main-opts ["-m" "clj-kondo.main" "--lint" "src"]}}}
+         :main-opts ["-m" "clj-kondo.main" "--lint" "src"]}
+  :test {:extra-paths ["test"]}
+  :runner {:extra-deps {com.cognitect/test-runner
+                        {:git/url "https://github.com/cognitect-labs/test-runner"
+                         :sha "3f288f1f16d167723ad87cc35b1dfee3c1681e10"}}
+           :main-opts ["-m" "cognitect.test-runner" "-d" "test"]}}}
