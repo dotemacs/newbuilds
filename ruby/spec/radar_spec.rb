@@ -1,5 +1,5 @@
 describe Radar do
-  let(:grid) { Grid.new(["---", "-o-", "---"]) }
+  let(:grid) { Grid.new(['---', '-o-', '---']) }
 
   subject(:radar) { described_class.new(grid) }
 
