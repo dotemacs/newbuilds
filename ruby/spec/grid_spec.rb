@@ -1,5 +1,5 @@
 describe Grid do
-  subject(:grid) { described_class.new(["abc", "def", "ghi"]) }
+  subject(:grid) { described_class.new(%w[abc def ghi]) }
 
   describe '#width' do
     it 'returns the number of columns' do
