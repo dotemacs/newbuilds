@@ -1,6 +1,6 @@
 # `newbuilds` Clojure test
 
-Also see [the presentation for the reasoning](../presentation/clojure.pdf)
+Also see [the presentation for the reasoning](../../presentation/clojure.pdf)
 
 The code is split in two:
 
