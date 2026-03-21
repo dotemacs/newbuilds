@@ -27,4 +27,10 @@ describe Invader do
       expect(invader.at(2, 1)).to eq('o')
     end
   end
+
+  describe '#rows' do
+    it 'returns the grid rows' do
+      expect(invader.rows).to eq(grid.rows)
+    end
+  end
 end

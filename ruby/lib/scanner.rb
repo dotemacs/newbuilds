@@ -29,11 +29,20 @@ class Scanner
     radar.width >= invader.width && radar.height >= invader.height
   end
 
+  def radar_section(invader, column, row)
+    invader.height.times.map do |invader_row|
+      invader.width.times.map do |invader_column|
+        radar.at(column + invader_column, row + invader_row)
+      end.join
+    end
+  end
+
   def detection_for(invader, column, row)
     score = score_for(invader, column, row)
     return if score < percent
 
-    { x: column, y: row, invader: invader, score: score }
+    { x: column, y: row, invader: invader, score: score,
+      radar_window: radar_section(invader, column, row) }
   end
 
   def score_for(invader, column, row)

@@ -16,4 +16,8 @@ class Invader
   def at(x, y)
     grid.at(x, y)
   end
+
+  def rows
+    grid.rows
+  end
 end
