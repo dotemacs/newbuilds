@@ -8,7 +8,12 @@ class Scanner
   end
 
   def call
-    invaders.flat_map { |invader| scan_for(invader) }
+    invaders.flat_map do |invader|
+      InvaderOrientations.new(invader).call.flat_map do |rows|
+        oriented_invader = Invader.new(Grid.new(rows))
+        scan_for(oriented_invader)
+      end
+    end
   end
 
   private
@@ -41,7 +46,7 @@ class Scanner
     score = score_for(invader, column, row)
     return if score < percent
 
-    { x: column, y: row, invader: invader, score: score,
+    { x: column, y: row, invader: invader.rows, score: score,
       radar_window: radar_section(invader, column, row) }
   end
 

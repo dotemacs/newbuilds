@@ -16,7 +16,7 @@ describe Scanner do
       it 'returns the match' do
         scanner = described_class.new(radar: radar, invaders: [invader], percent: 100)
 
-        expect(scanner.call).to eq([{ x: 1, y: 1, invader: invader, score: 100, radar_window: ['-o-', 'ooo'] }])
+        expect(scanner.call).to eq([{ x: 1, y: 1, invader: invader.rows, score: 100, radar_window: ['-o-', 'ooo'] }])
       end
     end
 
@@ -38,7 +38,8 @@ describe Scanner do
       it 'keeps matches that meet the percent cutoff' do
         scanner = described_class.new(radar: radar, invaders: [invader], percent: 83)
 
-        expect(scanner.call).to eq([{ x: 1, y: 1, invader: invader, score: 83, radar_window: ['-o-', 'oo-'] }])
+        expect(scanner.call).to eq([{ x: 1, y: 1, invader: invader.rows, score: 83, radar_window: ['-o-', 'oo-'] },
+                                    { x: 1, y: 1, invader: ['-o', 'oo', '-o'], score: 83, radar_window: ['-o', 'oo', '--'] }])
       end
     end
   end
