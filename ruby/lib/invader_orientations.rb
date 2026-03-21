@@ -11,7 +11,10 @@ class InvaderOrientations
     rotated_180 = rotate_90(rotated_90)
     rotated_270 = rotate_90(rotated_180)
 
-    [rows, rotated_90, rotated_180, rotated_270]
+    [{ rotation: 0, rows: rows },
+     { rotation: 90, rows: rotated_90 },
+     { rotation: 180, rows: rotated_180 },
+     { rotation: 270, rows: rotated_270 }]
   end
 
   private

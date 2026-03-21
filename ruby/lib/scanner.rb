@@ -9,9 +9,12 @@ class Scanner
 
   def call
     invaders.flat_map do |invader|
-      InvaderOrientations.new(invader).call.flat_map do |rows|
-        oriented_invader = Invader.new(Grid.new(rows))
-        scan_for(oriented_invader)
+      InvaderOrientations.new(invader).call.flat_map do |orientation|
+        oriented_invader = Invader.new(Grid.new(orientation[:rows]))
+
+        scan_for(oriented_invader).map do |match|
+          match.merge(rotation: orientation[:rotation])
+        end
       end
     end
   end
