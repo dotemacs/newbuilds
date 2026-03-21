@@ -13,7 +13,8 @@ class Scanner
         oriented_invader = Invader.new(Grid.new(orientation[:rows]))
 
         scan_for(oriented_invader).map do |match|
-          match.merge(rotation: orientation[:rotation])
+          match.merge(rotation: orientation[:rotation],
+                      invader: oriented_invader.rows)
         end
       end
     end

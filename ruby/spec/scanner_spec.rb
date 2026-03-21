@@ -16,7 +16,7 @@ describe Scanner do
       it 'returns the match' do
         scanner = described_class.new(radar: radar, invaders: [invader], percent: 100)
 
-        expect(scanner.call).to eq([{ x: 1, y: 1, invader: invader.rows, score: 100, radar_window: ['-o-', 'ooo'], rotation: 0}])
+        expect(scanner.call).to eq([{ x: 1, y: 1, invader: invader.rows, score: 100, radar_window: ['-o-', 'ooo'], rotation: 0 }])
       end
     end
 
