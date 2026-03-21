@@ -14,3 +14,6 @@ Naming/MethodParameterName:
 Metrics/BlockLength:
   Exclude:
     - 'spec/**/*_spec.rb'
+
+Naming/VariableNumber:
+  Enabled: false

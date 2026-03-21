@@ -1,0 +1,25 @@
+class InvaderOrientations
+  private attr_reader :invader
+
+  def initialize(invader)
+    @invader = invader
+  end
+
+  def call
+    rows = invader.rows
+    rotated_90 = rotate_90(rows)
+    rotated_180 = rotate_90(rotated_90)
+    rotated_270 = rotate_90(rotated_180)
+
+    [rows, rotated_90, rotated_180, rotated_270]
+  end
+
+  private
+
+  def rotate_90(rows)
+    rows.map(&:chars)
+        .transpose
+        .reverse
+        .map(&:join)
+  end
+end
