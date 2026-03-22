@@ -8,10 +8,10 @@ describe InvaderOrientations do
     let(:invader_orientations) { described_class.new(invader) }
 
     it 'returns the rotations at 0, 90, 180 & 270 degrees' do
-      orientations = [{ rotation: 0, rows: ['-o-', 'ooo'] },
-                      { rotation: 90, rows: ['-o', 'oo', '-o'] },
-                      { rotation: 180, rows: ['ooo', '-o-'] },
-                      { rotation: 270, rows: ['o-', 'oo', 'o-'] }]
+      orientations = [{ rotation: 0, mirrored: false, rows: ['-o-', 'ooo'] },
+                      { rotation: 90, mirrored: false, rows: ['-o', 'oo', '-o'] },
+                      { rotation: 180, mirrored: false, rows: ['ooo', '-o-'] },
+                      { rotation: 270, mirrored: false, rows: ['o-', 'oo', 'o-'] }]
       expect(invader_orientations.call).to eq(orientations)
     end
 
@@ -25,7 +25,7 @@ describe InvaderOrientations do
       let(:invader_orientations) { described_class.new(invader) }
 
       it 'returns unique rows only' do
-        orientations = [{ rotation: 0, rows: %w[oo oo] }]
+        orientations = [{ rotation: 0, mirrored: false, rows: %w[oo oo] }]
         expect(invader_orientations.call).to eq(orientations)
       end
     end
