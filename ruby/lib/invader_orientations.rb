@@ -6,14 +6,21 @@ class InvaderOrientations
   end
 
   def call
-    rows = invader.rows
+    orientations = unmirrored_mirrored_invaders.flat_map do |invader|
+      rotations_for(invader[:rows], mirrored: invader[:mirrored])
+    end
 
-     (rotations_for(rows, mirrored: false) +
-      rotations_for(mirror(rows), mirrored: true))
-       .uniq { |invader| invader[:rows] }
+    orientations.uniq { |invader| invader[:rows] }
   end
 
   private
+
+  def unmirrored_mirrored_invaders
+    rows = invader.rows
+
+    [{ rows: rows, mirrored: false },
+     { rows: mirror(rows), mirrored: true }]
+  end
 
   def rotations_for(rows, mirrored:)
     rotated_90 = rotate_90(rows)
