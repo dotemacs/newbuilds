@@ -15,6 +15,7 @@ class InvaderOrientations
      { rotation: 90, rows: rotated_90 },
      { rotation: 180, rows: rotated_180 },
      { rotation: 270, rows: rotated_270 }]
+      .uniq { |orientation| orientation[:rows] }
   end
 
   private

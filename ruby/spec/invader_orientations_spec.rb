@@ -14,5 +14,20 @@ describe InvaderOrientations do
                       { rotation: 270, rows: ['o-', 'oo', 'o-'] }]
       expect(invader_orientations.call).to eq(orientations)
     end
+
+    context 'if the invader is symmetrical' do
+      let(:symmetrical_rows) do
+        %w[oo
+           oo].map(&:strip)
+      end
+
+      let(:invader) { Invader.new(Grid.new(symmetrical_rows)) }
+      let(:invader_orientations) { described_class.new(invader) }
+
+      it 'returns unique rows only' do
+        orientations = [{ rotation: 0, rows: %w[oo oo] }]
+        expect(invader_orientations.call).to eq(orientations)
+      end
+    end
   end
 end
