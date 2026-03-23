@@ -1,5 +1,7 @@
 # `newbuilds` Ruby test
 
+See [the presentation for the reasoning](../../presentation/ruby.pdf)
+
 ## Basic lay of the land
 
 - `lib/` contains the code
